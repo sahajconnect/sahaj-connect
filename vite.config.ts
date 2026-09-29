@@ -1,9 +1,11 @@
 import { defineConfig, type HtmlTagDescriptor, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
+import fs from 'node:fs'
 import path from 'node:path'
 
-import siteConfiguration from './.figma/make/site.json'
+// Figma Make generates .figma/make/site.json; it may be absent outside Figma Make (e.g. CI builds).
+const siteConfiguration = loadSiteConfiguration(path.resolve(__dirname, '.figma/make/site.json'))
 
 // Vite config — https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -67,6 +69,11 @@ type FigmaSiteConfiguration = {
   accessibility?: {
     addBypassLinks?: boolean
   }
+}
+
+function loadSiteConfiguration(file: string): FigmaSiteConfiguration {
+  if (!fs.existsSync(file)) return {}
+  return JSON.parse(fs.readFileSync(file, 'utf-8')) as FigmaSiteConfiguration
 }
 
 /** Applies /.figma/make/site.json to the generated document shell. */
